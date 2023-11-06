@@ -1,6 +1,11 @@
 # ToG
 
+## ToG is moved to a new repo [ToG](https://github.com/IDEA-FinAI/ToG).
+
+
 The code for paper: ["Think-on-Graph: Deep and Responsible Reasoning of Large Language Model on Knowledge Graph"](https://arxiv.org/pdf/2307.07697.pdf).
+
+
 
 ## Here is the illustration of ToG:
 
