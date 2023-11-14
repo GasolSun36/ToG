@@ -1,0 +1,26 @@
+In the following I will give you a question, a relevant document, and you should answer my question. Please wrap your question in brackets ({}). Below I will show you some examples.
+
+Example 1:
+Question: ABCDEFG
+Document: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+Answer: based on dfsfd, {my answer} is the answer.
+
+Example 2:
+Question: ABCDEFG
+Document: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+Answer: based on dfsfd, {my answer} is the answer.
+
+Example 3:
+Question: ABCDEFG
+Document: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+Answer: based on dfsfd, {my answer} is the answer.
+
+Example 4:
+Question: ABCDEFG
+Document: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+Answer: based on dfsfd, {my answer} is the answer.
+
+Example 5:
+Question: ABCDEFG
+Document: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+Answer: based on dfsfd, {my answer} is the answer.

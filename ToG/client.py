@@ -2,6 +2,9 @@ import itertools
 import xmlrpc.client
 import typing as tp
 from concurrent.futures import ThreadPoolExecutor
+import requests
+from bs4 import BeautifulSoup
+
 
 class WikidataQueryClient:
     def __init__(self, url: str):
@@ -45,6 +48,46 @@ class WikidataQueryClient:
         return self.server.get_external_id_given_head_and_relation(
             head_qid, relation_pid
         )
+
+    def get_wikipedia_page(self, qid: str, section: str = None) -> str:
+        wikipedia_url = self.server.get_wikipedia_link(qid)
+        if wikipedia_url == "Not Found!":
+            return "Not Found!"
+        else:
+            response = requests.get(wikipedia_url)
+            if response.status_code != 200:
+                raise Exception(f"Failed to retrieve page: {wikipedia_url}")
+
+            soup = BeautifulSoup(response.content, "html.parser")
+            content_div = soup.find("div", {"id": "bodyContent"})
+
+            # Remove script and style elements
+            for script_or_style in content_div.find_all(["script", "style"]):
+                script_or_style.decompose()
+
+            if section:
+                header = content_div.find(
+                    lambda tag: tag.name == "h2" and section in tag.get_text()
+                )
+                if header:
+                    content = ""
+                    for sibling in header.find_next_siblings():
+                        if sibling.name == "h2":
+                            break
+                        content += sibling.get_text()
+                    return content.strip()
+                else:
+                    # If the specific section is not found, return an empty string or a message.
+                    return f"Section '{section}' not found."
+
+            # Fetch the header summary (before the first h2)
+            summary_content = ""
+            for element in content_div.find_all(recursive=False):
+                if element.name == "h2":
+                    break
+                summary_content += element.get_text()
+
+            return summary_content.strip()
 
     def mid2qid(self, mid: str) -> str:
         return self.server.mid2qid(mid)
@@ -105,7 +148,9 @@ class MultiServerWikidataQueryClient:
         # print(f"HTTP Queries took {end_time - start_time} seconds")
 
         start_time = time.perf_counter()
-        real_results = set() if not is_dict_return else {"head": [], "tail": []}
+        real_results = (
+            set() if not is_dict_return else {"head": [], "tail": []}
+        )
         for res in results:
             if isinstance(res, str) and res == "Not Found!":
                 continue
