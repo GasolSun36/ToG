@@ -50,16 +50,17 @@ class WikidataQueryClient:
         )
 
     def get_wikipedia_page(self, qid: str, section: str = None) -> str:
-        wikipedia_url = self.server.get_wikipedia_link(qid)
-        if wikipedia_url == "Not Found!":
+        wikipedia_title = self.server.get_wikipedia_link(qid)
+        if wikipedia_title == "Not Found!":
             return "Not Found!"
         else:
+            wikipedia_url = f"https://en.wikipedia.org/wiki/{wikipedia_title[0]}"
             response = requests.get(wikipedia_url)
             if response.status_code != 200:
                 raise Exception(f"Failed to retrieve page: {wikipedia_url}")
 
             soup = BeautifulSoup(response.content, "html.parser")
-            content_div = soup.find("div", {"id": "bodyContent"})
+            content_div = soup.find("div", {"id": "bodyContent"}).find("div", {"id": "mw-content-text"})
 
             # Remove script and style elements
             for script_or_style in content_div.find_all(["script", "style"]):
@@ -82,9 +83,11 @@ class WikidataQueryClient:
 
             # Fetch the header summary (before the first h2)
             summary_content = ""
-            for element in content_div.find_all(recursive=False):
+            for element in content_div.find_all(recursive=True):
                 if element.name == "h2":
                     break
+                if element.name != 'p' and element.name != 'table':
+                    continue
                 summary_content += element.get_text()
 
             return summary_content.strip()

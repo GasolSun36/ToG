@@ -3,6 +3,7 @@ import argparse
 import random
 from wiki_func import *
 from client import *
+import os
 
 QUESTION_TEMPLATE = """
         Here comes your question:
@@ -30,17 +31,17 @@ def parse_args() -> argparse.Namespace:
         help="the temperature in exploration stage.",
     )
     parser.add_argument(
-        "--LLM_type", type=str, default="gpt-3.5-turbo", help="base LLM model."
+        "--LLM_type", type=str, default="gpt-3.5-turbo-1106", help="base LLM model."
     )
     parser.add_argument(
         "--openai_api_keys",
         type=str,
-        default="",
+        default="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",
         help="if the LLM_type is gpt-3.5-turbo or gpt-4, you need add your own openai api keys.",
     )
     parser.add_argument(
         "--addr_list",
-        type=int,
+        type=str,
         default="./server_urls.txt",
         help="The address of the Wikidata service.",
     )
@@ -51,7 +52,7 @@ def parse_args() -> argparse.Namespace:
         help="Path to few shot data.",
     )
     parser.add_argument(
-        "--result_save_path", type=str, default="./rag_results.json"
+        "--result_save_path", type=str, default="./rag_results"
     )
     args = parser.parse_args()
     return args
@@ -70,15 +71,19 @@ def process_data(
     few_shot_prefix: str,
 ):
     question = data[question_string]
-    topic_entity = data["topic_entity"]
+    topic_entity = list(data["qid_topic_entity"])
     cluster_chain_of_entities = []
     pre_relations = ([],)
     pre_heads = [-1] * len(topic_entity)
     flag_printed = False
 
     related_passage = wiki_client.query_all(
-        method="get_wikipedia_page", qid=topic_entity[0]
+        "get_wikipedia_page", topic_entity[0]
     )
+    related_passage = "\n".join(related_passage)
+    
+    not_found = True if 'Not Found!' in related_passage else False    
+    
     llm_input = few_shot_prefix + QUESTION_TEMPLATE.format(
         q=question, d=related_passage
     )
@@ -86,13 +91,16 @@ def process_data(
         prompt=llm_input,
         temperature=args.temperature,
         max_tokens=args.max_length,
-        model=args.LLM_type,
-        api_key=args.openai_api_keys,
+        engine=args.LLM_type,
+        opeani_api_keys=args.openai_api_keys,
     )
     return {
         "results": response,
         "question": question,
+        "llm_input": llm_input,
+        "not_found": not_found,
         "topic_entity": topic_entity,
+        
     }
 
 
@@ -105,7 +113,13 @@ def main(args):
     with open(args.few_shot_path, "r") as f:
         few_shot_data = "\n".join(f.readlines())
 
-    for data in tqdm(datas):
+    # # Clear the result file
+    # with open(args.result_save_path, "w") as f:
+    #     pass
+    os.makedirs(args.result_save_path, exist_ok=True)
+
+    results = []
+    for i, data in tqdm(enumerate(datas)):
         result = process_data(
             data,
             args,
@@ -113,8 +127,9 @@ def main(args):
             question_string=question_string,
             few_shot_prefix=few_shot_data,
         )
-        with open(args.result_save_path, "a") as f:
-            f.write(json.dumps(result) + "\n")
+        # results.append(result)
+        with open(os.path.join(args.result_save_path, f"{i}.json"), "w") as f:
+            f.write(json.dumps(result) + '\n')
 
 
 if __name__ == "__main__":

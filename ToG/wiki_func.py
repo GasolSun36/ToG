@@ -45,7 +45,7 @@ def clean_relations(string, entity_id, head_relations):
 def run_llm(
     prompt, temperature, max_tokens, opeani_api_keys, engine="gpt-3.5-turbo"
 ):
-    if "llama" not in engine.lower():
+    if "llama" in engine.lower():
         openai.api_key = "EMPTY"
         openai.api_base = (
             "http://localhost:8000/v1"  # your local llama server port
@@ -63,6 +63,7 @@ def run_llm(
     message_prompt = {"role": "user", "content": prompt}
     messages.append(message_prompt)
     print("start openai")
+    f = 0
     while f == 0:
         try:
             response = openai.ChatCompletion.create(
