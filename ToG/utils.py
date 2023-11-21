@@ -1,6 +1,9 @@
 from freebase_func import *
 from prompt_list import *
 import json
+import re
+import time
+import openai
 from rank_bm25 import BM25Okapi
 from sentence_transformers import util
 from sentence_transformers import SentenceTransformer
@@ -194,7 +197,7 @@ def entity_search(entity, relation, head=True):
 def entity_score(question, entity_candidates_id, score, relation, args):
     entity_candidates = [id2entity_name_or_type(entity_id) for entity_id in entity_candidates_id]
     if all_unknown_entity(entity_candidates):
-        return [1/len(entity_candidates) * score] * len(entity_candidates), entity_candidates
+        return [1/len(entity_candidates) * score] * len(entity_candidates), entity_candidates, entity_candidates_id
     entity_candidates = del_unknown_entity(entity_candidates)
     if len(entity_candidates) == 1:
         return [score], entity_candidates, entity_candidates_id
