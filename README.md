@@ -1,5 +1,8 @@
 # ToG
 
+## News!
+Our paper is accepted by ICLR 2024 ! 🥳🥳🥳
+
 ## ToG is moved to a new repo [ToG](https://github.com/IDEA-FinAI/ToG).
 
 
